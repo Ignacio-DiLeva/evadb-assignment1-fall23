@@ -37,6 +37,7 @@ from evadb.plan_nodes.create_function_plan import CreateFunctionPlan
 from evadb.third_party.huggingface.create import gen_hf_io_catalog_entries
 from evadb.utils.errors import FunctionIODefinitionError
 from evadb.utils.generic_utils import (
+    impl_path_is_mojo_function,
     load_function_class_from_file,
     string_comparison_case_insensitive,
     try_to_import_ludwig,
