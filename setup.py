@@ -56,6 +56,7 @@ minimal_requirements = [
     "pydantic<2",  # ray-project/ray#37019.
     "psutil",
     "thefuzz",
+    "find-libpython>=0.3.0",
 ]
 
 vision_libs = [

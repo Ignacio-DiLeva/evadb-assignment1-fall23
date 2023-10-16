@@ -32,6 +32,7 @@ from evadb.database import EvaDBDatabase
 from evadb.executor.abstract_executor import AbstractExecutor
 from evadb.functions.decorators.utils import load_io_from_function_decorators
 from evadb.models.storage.batch import Batch
+from evadb.mojo import MojoController
 from evadb.plan_nodes.create_function_plan import CreateFunctionPlan
 from evadb.third_party.huggingface.create import gen_hf_io_catalog_entries
 from evadb.utils.errors import FunctionIODefinitionError
@@ -432,6 +433,20 @@ class CreateFunctionExecutor(AbstractExecutor):
             metadata_here,
         )
 
+    def handle_mojo_function(self):
+        impl_path = self.node.impl_path.absolute().as_posix()
+        controller = MojoController.get_mojo_controller(impl_path)
+        func = controller.getFunction(self.node.name)
+        func_manifest = func.manifest
+        io_list = (self.node.inputs if self.node.inputs else func_manifest.get_input_io_list()) + (self.node.outputs if self.node.outputs else func_manifest.get_output_io_list())
+        return (
+            self.node.name,
+            impl_path,
+            self.node.function_type,
+            io_list,
+            self.node.metadata,
+        )
+
     def handle_generic_function(self):
         """Handle generic functions
 
@@ -482,9 +497,16 @@ class CreateFunctionExecutor(AbstractExecutor):
                 msg = f"Function {self.node.name} already exists."
                 logger.error(msg)
                 raise RuntimeError(msg)
-
+        if impl_path_is_mojo_function(self.node.impl_path.absolute().as_posix() if self.node.impl_path else ""):
+            (
+            name,
+            impl_path,
+            function_type,
+            io_list,
+            metadata,
+        ) = self.handle_mojo_function()
         # if it's a type of HuggingFaceModel, override the impl_path
-        if string_comparison_case_insensitive(self.node.function_type, "HuggingFace"):
+        elif string_comparison_case_insensitive(self.node.function_type, "HuggingFace"):
             (
                 name,
                 impl_path,

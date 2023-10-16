@@ -36,6 +36,7 @@ from evadb.configuration.constants import EvaDB_INSTALLATION_DIR
 from evadb.expression.abstract_expression import AbstractExpression, ExpressionType
 from evadb.expression.function_expression import FunctionExpression
 from evadb.expression.tuple_value_expression import TupleValueExpression
+from evadb.mojo import MojoController
 from evadb.parser.create_function_statement import CreateFunctionStatement
 from evadb.parser.create_index_statement import CreateIndexStatement
 from evadb.parser.create_statement import ColumnDefinition, CreateTableStatement
@@ -50,6 +51,7 @@ from evadb.third_party.huggingface.binder import assign_hf_function
 from evadb.utils.generic_utils import (
     load_function_class_from_file,
     string_comparison_case_insensitive,
+    impl_path_is_mojo_function,
 )
 from evadb.utils.logging_manager import logger
 
@@ -304,6 +306,9 @@ class StatementBinder:
             node.function = lambda: function_class(
                 model_path=function_metadata["model_path"]
             )
+        elif impl_path_is_mojo_function(function_obj.impl_file_path):
+            mojoFunc = MojoController.get_mojo_controller(function_obj.impl_file_path).getFunction(function_obj.name)
+            node.function = lambda: mojoFunc
 
         else:
             if function_obj.type == "ultralytics":
