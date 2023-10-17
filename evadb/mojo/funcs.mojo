@@ -97,7 +97,7 @@ fn main() raises:
         do_manifests()
         print("Ready")
     except e:
-        print(e._message())
+        print("Error")
         return
     while True:
         try:
