@@ -2,7 +2,7 @@ import os
 from sys import path as sys_path
 from shutil import rmtree
 
-sys_path.insert(0, '.') # Import repo's evadb instead of a pip-installed, even though it won't work for Mojo
+sys_path.insert(0, '.') # Import repo's evadb
 
 from evadb import connect
 from evadb.mojo import MOJO_BUILTINS_PATH
