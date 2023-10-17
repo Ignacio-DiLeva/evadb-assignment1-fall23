@@ -17,12 +17,22 @@ if __name__ == "__main__":
         cursor = connect().cursor()
         cursor.query(Similarity_function_query).execute()
         cursor.query(f"CREATE OR REPLACE FUNCTION SentenceTransformerFeatureExtractor IMPL '{MOJO_BUILTINS_PATH}'").execute()
+        cursor.query(f"CREATE OR REPLACE FUNCTION CustomSentenceTransformerFeatureExtractor1 IMPL './mojo-demo/CustomSourceSTFES'").execute()
+        cursor.query(f"CREATE OR REPLACE FUNCTION CustomSentenceTransformerFeatureExtractor2 IMPL './mojo-demo/CustomSourceSTFES'").execute()
         while True:
             print("")
-            print("Find similarity distance between two sentences (don't use special characters, including apostrophes)")
+            print("Using BUILTIN: Find similarity distance between two sentences (don't use special characters, including apostrophes)")
             sentence1 = input("Type sentence 1: ")
             sentence2 = input("Type sentence 2: ")
+            # Use SentenceTransformerFeatureExtractor from evadb/mojo/funcs.mojo
             result = cursor.query(f"SELECT Similarity(SentenceTransformerFeatureExtractor('{sentence1}').features, SentenceTransformerFeatureExtractor('{sentence2}').features)").df()
+            print("The distance is: " + str(result.iat[0,0]))
+            print("")
+            print("Using CUSTOM SOURCES: Find similarity distance between two sentences (don't use special characters, including apostrophes)")
+            sentence1 = input("Type sentence 1: ")
+            sentence2 = input("Type sentence 2: ")
+            # Use CustomSentenceTransformerFeatureExtractor1 and CustomSentenceTransformerFeatureExtractor2 from ./mojo-demo/CustomSourceSTFES
+            result = cursor.query(f"SELECT Similarity(CustomSentenceTransformerFeatureExtractor1('{sentence1}').features, CustomSentenceTransformerFeatureExtractor2('{sentence2}').features)").df()
             print("The distance is: " + str(result.iat[0,0]))
             print("")
             check = input("Do you want to continue? (y/n): ").lower()
