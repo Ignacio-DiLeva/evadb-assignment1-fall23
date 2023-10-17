@@ -45,7 +45,10 @@ class MojoController:
                 mojoEnv = os.environ.copy()
                 mojoEnv["MOJO_PYTHON_LIBRARY"] = find_libpython()
                 self.process = Popen([self.processName, self.folder], env=mojoEnv, stdin=PIPE, stdout=PIPE, stderr=STDOUT)
-                response = self.process.stdout.readline().decode('utf-8').strip()
+                while True:
+                    response = self.process.stdout.readline().decode('utf-8').strip()
+                    if response == "Ready" or response == "Error":
+                        break
                 if response != "Ready":
                     raise Exception(f"Unexpected response from Mojo process during MojoController startup: {response}")
                 for fname in os.listdir(self.folder + "/manifests"):
@@ -65,7 +68,10 @@ class MojoController:
         self.ensureReady()
         self.process.stdin.write(f"setup:{funcName}\n".encode('utf-8'))
         self.process.stdin.flush()
-        response = self.process.stdout.readline().decode('utf-8').strip()
+        while True:
+            response = self.process.stdout.readline().decode('utf-8').strip()
+            if response == "Done" or response == "Error":
+                break
         if response != "Done":
             raise Exception(f"Unexpected response from Mojo process during setup for {funcName}: {response}")
 
@@ -75,7 +81,10 @@ class MojoController:
             pickle.dump(v, f)
         self.process.stdin.write(f"forward:{funcName}\n".encode('utf-8'))
         self.process.stdin.flush()
-        response = self.process.stdout.readline().decode('utf-8').strip()
+        while True:
+            response = self.process.stdout.readline().decode('utf-8').strip()
+            if response == "Done" or response == "Error":
+                break
         if response != "Done":
             raise Exception(f"Unexpected response from Mojo process during forward for {funcName}: {response}")
         result = None

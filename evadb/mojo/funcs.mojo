@@ -2,20 +2,22 @@ from python import Python
 from sys import argv
 from utils.vector import DynamicVector
 
-var FILES_FOLDER: String = ""
+let PythonNone = Python.none()
 
-var mojoh: PythonObject = None
-var mlist: PythonObject = None
+var FILES_FOLDER: PythonObject = PythonNone
 
-var pd: PythonObject = None
-var SentenceTransformer: PythonObject = None
-var FunctionManifest: PythonObject = None
-var NumpyArray: PythonObject = None
-var PyTorchTensor: PythonObject = None
-var PandasDataframe: PythonObject = None
-var Dimension: PythonObject = None
-var NdArrayType: PythonObject = None
-var input: PythonObject = None
+var mojoh = PythonNone
+var mlist = PythonNone
+
+var pd = PythonNone
+var SentenceTransformer = PythonNone
+var FunctionManifest = PythonNone
+var NumpyArray = PythonNone
+var PyTorchTensor = PythonNone
+var PandasDataframe = PythonNone
+var Dimension = PythonNone
+var NdArrayType = PythonNone
+var input = PythonNone
 
 struct SentenceTransformerFeatureExtractor:
     var ready: Bool
@@ -42,7 +44,7 @@ struct SentenceTransformerFeatureExtractor:
 
     fn __init__(inout self):
         self.ready = False
-        self.model = None
+        self.model = PythonNone
 
     fn setup(inout self) raises:
         if not self.ready:
@@ -57,7 +59,7 @@ struct SentenceTransformerFeatureExtractor:
 var stfe = SentenceTransformerFeatureExtractor()
 
 fn do_python_imports() raises:
-    Python.add_to_path("evadb")
+    Python.add_to_path(".")
 
     mojoh = Python.import_module("evadb.mojoh")
     mlist = mojoh.mlist
@@ -77,7 +79,7 @@ fn do_python_imports() raises:
 fn do_manifests() raises:
     _ = mojoh.pickle_store(FILES_FOLDER + "/manifests/SentenceTransformerFeatureExtractor", stfe.manifest())
 
-fn do_exec(cmd: String) raises:
+fn do_exec(cmd: PythonObject) raises:
     if cmd == "setup:SentenceTransformerFeatureExtractor":
         stfe.setup()
         return
@@ -90,25 +92,21 @@ fn do_exec(cmd: String) raises:
 fn main() raises:
     try:
         let args = argv()
-        if len(args) < 2:
-            print("Error")
-            return
         FILES_FOLDER = args[1]
         do_python_imports()
         do_manifests()
         print("Ready")
     except e:
-        print("Error")
+        print(e._message())
         return
     while True:
         try:
             let func: PythonObject = input()
             if not func:
                 return
-            let cmd: String = func.to_string()
-            if cmd == "":
+            if func == "":
                 return
-            do_exec(cmd)
+            do_exec(func)
             print("Done")
         except e:
             print("Error")
