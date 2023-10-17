@@ -7,8 +7,8 @@ import atexit
 import os
 import pandas as pd
 import pickle
-import tempfile
-import shutil
+from tempfile import mkdtemp
+from shutil import rmtree
 
 from .mojo_function import MojoFunction
 
@@ -40,7 +40,7 @@ class MojoController:
         self.checkOpen()
         if not self.ready:
             try:
-                self.folder = tempfile.mkdtemp()
+                self.folder = mkdtemp()
                 os.mkdir(self.folder + "/manifests")
                 mojoEnv = os.environ.copy()
                 mojoEnv["MOJO_PYTHON_LIBRARY"] = find_libpython()
@@ -58,7 +58,7 @@ class MojoController:
             finally:
                 if not self.ready:
                     if self.folder is not None:
-                        shutil.rmtree(self.folder, ignore_errors=True)
+                        rmtree(self.folder, ignore_errors=True)
                         self.folder = None
                     if self.process is not None:
                         self.process.kill()
@@ -99,7 +99,7 @@ class MojoController:
                 self.process.communicate(input=b"\n", timeout=3)
             except:
                 self.process.kill()
-            shutil.rmtree(self.folder, ignore_errors=True)
+            rmtree(self.folder, ignore_errors=True)
         self.closed = True
         self.ready = False
 

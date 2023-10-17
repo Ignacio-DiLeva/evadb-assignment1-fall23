@@ -1,6 +1,8 @@
+import os
 from sys import path as sys_path
+from shutil import rmtree
 
-sys_path.insert(0, '.')
+sys_path.insert(0, '.') # Import repo's evadb instead of a pip-installed, even though it won't work for Mojo
 
 from evadb import connect
 from evadb.mojo import MOJO_BUILTINS_PATH
@@ -8,6 +10,8 @@ from evadb.functions.function_bootstrap_queries import Similarity_function_query
 
 
 if __name__ == "__main__":
+    if os.path.exists("evadb_data"):
+        rmtree("evadb_data", ignore_errors=True)
     try:
         print("⏳ Establishing evadb connection...")
         cursor = connect().cursor()
@@ -29,3 +33,6 @@ if __name__ == "__main__":
         print("❗️ Session ended with an error.")
         print(e)
         print("===========================================")
+    finally:
+        if os.path.exists("evadb_data"):
+            rmtree("evadb_data", ignore_errors=True)
