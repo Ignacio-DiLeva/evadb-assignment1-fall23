@@ -16,16 +16,26 @@ MojoController = TypeVar("MojoController")
 
 class MojoController:
 
+    MOJO_PYTHON_LIBRARY = find_libpython()
     instances = {}
+    controllerFinishFuncs = []
 
     @staticmethod
     def get_mojo_controller(processName: str) -> MojoController:
         controller = MojoController.instances.get(processName, None)
         if controller is None:
             controller = MojoController(processName)
-            atexit.register(lambda: controller.finish())
+            onTerminate = lambda: controller.finish()
+            MojoController.controllerFinishFuncs.append(onTerminate)
             MojoController.instances[processName] = controller
         return controller
+
+    @staticmethod
+    @atexit.register 
+    def stop_all() -> None:
+        for onTerminate in MojoController.controllerFinishFuncs:
+            onTerminate()
+        MojoController.controllerFinishFuncs = []
 
     def __init__(self, processName: str) -> None:
         self.ready = False
@@ -43,7 +53,7 @@ class MojoController:
                 self.folder = mkdtemp()
                 os.mkdir(self.folder + "/manifests")
                 mojoEnv = os.environ.copy()
-                mojoEnv["MOJO_PYTHON_LIBRARY"] = find_libpython()
+                mojoEnv["MOJO_PYTHON_LIBRARY"] = MojoController.MOJO_PYTHON_LIBRARY
                 self.process = Popen([self.processName, self.folder], env=mojoEnv, stdin=PIPE, stdout=PIPE, stderr=STDOUT)
                 while True:
                     response = self.process.stdout.readline().decode('utf-8').strip()
